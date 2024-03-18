@@ -1,0 +1,7 @@
+Outputs:
+  UserPoolId:
+    Description: The Id of the UserPool
+    Value: !Ref CognitoUserPoolServiceUserPool
+  UserPoolClientId:
+    Description: The Id of the UserPool
+    Value: !Ref serviceUserPoolClient

@@ -1,0 +1,78 @@
+frameworkVersion: ^3.30.1
+service: cognito-group-auth
+
+provider:
+  name: aws
+  runtime: python3.10
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${sls:stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:DeleteItem
+          Resource:
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TABLE}/index/sk-pk-index"
+        # This is very permissive.
+        # In an application that requires more granular security, 
+        # you can deploy the cognito resources in a separate stack 
+        # and reference the resource ARN outputs here.
+        - Effect: Allow
+          Action:
+            - cognito-idp:AdminAddUserToGroup
+          Resource: "*"
+  httpApi:
+    cors: true
+    authorizers:
+      serviceAuthorizer:
+        identitySource: $request.header.Authorization
+        issuerUrl:
+          Fn::Join:
+          - ''
+          - - 'https://cognito-idp.'
+            - '${aws:region}'
+            - '.amazonaws.com/'
+            - Ref: CognitoUserPoolServiceUserPool
+        audience:
+          - Ref: serviceUserPoolClient
+functions:
+  postConfirmation:
+    handler: cognito_post_confirmation.handler
+    events:
+      - cognitoUserPool:
+          # This must be the name of the cognito user pool
+          # But *without* the "CognitoUserPool" at the front
+          pool: ServiceUserPool
+          trigger: PostConfirmation
+  createPost:
+    handler: user_posts.create
+    events:
+      - httpApi:
+            method: POST
+            path: /user/post
+            authorizer: serviceAuthorizer
+  deletePost:
+    handler: user_posts.delete
+    events:
+      - httpApi:
+            method: delete
+            path: /user/{userId}/post/{postId}
+            authorizer: serviceAuthorizer
+  getAllPosts:
+    handler: user_posts.get_all
+    events:
+      - httpApi:
+            method: get
+            path: /user/posts
+            authorizer: serviceAuthorizer
+
+resources:
+  - ${file(resources/dynamodb.yml)}
+  - ${file(resources/cognito.yml)}
+  - ${file(resources/outputs.yml)}

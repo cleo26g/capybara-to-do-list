@@ -1,0 +1,49 @@
+Resources: 
+  CognitoUserPoolServiceUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: service-user-pool-${sls:stage}
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+  adminUserPoolGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: admin
+      UserPoolId:
+        Ref: CognitoUserPoolServiceUserPool
+  userUserPoolGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties: 
+      GroupName: user
+      UserPoolId:
+        Ref: CognitoUserPoolServiceUserPool
+  serviceUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: service-user-pool-client-${sls:stage}
+      AllowedOAuthFlows:
+        - code
+        # You can also use other flows
+        # However some, like the like the "implicit" grant
+        # Are no longer recommended
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - phone
+        - email
+        - openid
+        - profile
+        - aws.cognito.signin.user.admin
+      UserPoolId:
+        Ref: CognitoUserPoolServiceUserPool
+      CallbackURLs:
+        - https://localhost:3000
+        # This is only a local demonstration
+        # - https://yourdomain.com/callback
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      SupportedIdentityProviders: 
+        - COGNITO
