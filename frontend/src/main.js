@@ -5,9 +5,9 @@ import { Amplify } from 'aws-amplify';
 
 Amplify.configure({
     Auth: {
-        region: 'REPLACE_ME',
-        userPoolId: 'REPLACE_ME',
-        userPoolWebClientId: 'REPLACE_ME',
+        region: 'us-east-1',
+        userPoolId: 'us-east-1_Xf2MACMDh',
+        userPoolWebClientId: '3ejvl5qniefqloiggpr2n73t12',
     }
 });
 

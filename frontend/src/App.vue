@@ -57,7 +57,7 @@ import ViewAuthTokenModalAndButton from './components/ViewAuthTokenModalAndButto
 
 const auth = useAuthenticator();
 
-const API_ENDPOINT = 'REPLACE_ME'
+const API_ENDPOINT = 'https://mcx4vo4igc.execute-api.us-east-1.amazonaws.com'
 
 export default {
   components: {
